@@ -29,10 +29,11 @@ Date: 2026-09-23 | Track: The-Bell (Gazette Watch) | Branch: labs/the-bell-notic
 ## Risks / open edges
 - Exact-equality only: `q=4521` won't match notice "4521-A", and combined
   `number/year` queries like `q=4521/2026` are not parsed — deliberately deferred.
-- The repo has no test suite; the change was verified by reading, not by running.
+- The repo has no endpoint integration test suite; static validation was run with
+  `npm run lint`, but no live DB-backed request test was executed here.
 - Pre-existing pattern kept: search terms are interpolated into `ilike` as bound
-  parameters (drizzle handles escaping); numeric path uses `parseInt` on a
-  digit-only string, so no injection surface was added.
+  parameters (drizzle handles escaping); numeric path uses `Number` with
+  safe-integer + int32 bounds checks, so no injection surface was added.
 - Branch protection could NOT be enabled (see decision requested): GitHub
   requires Pro/Team or a public repo for private-repo branch protection. The
   loop's "no direct push" rule is convention-only until resolved.
