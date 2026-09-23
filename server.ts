@@ -38,20 +38,22 @@ async function startServer() {
       
       if (searchQuery) {
         const trimmed = searchQuery.trim();
-        const numericCandidate = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
-        const numericQuery = numericCandidate !== null
-          && Number.isSafeInteger(numericCandidate)
-          && numericCandidate <= 2147483647
-          ? numericCandidate
-          : null;
-        condition = or(
-          ilike(notices.subjectLine, `%${searchQuery}%`),
-          ilike(notices.rawText, `%${searchQuery}%`),
-          ilike(notices.actCited, `%${searchQuery}%`),
-          ...(numericQuery !== null
-            ? [eq(notices.noticeNumber, numericQuery), eq(notices.noticeYear, numericQuery)]
-            : [])
-        );
+        if (trimmed) {
+          const numericCandidate = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
+          const numericQuery = numericCandidate !== null
+            && Number.isSafeInteger(numericCandidate)
+            && numericCandidate <= 2147483647
+            ? numericCandidate
+            : null;
+          condition = or(
+            ilike(notices.subjectLine, `%${trimmed}%`),
+            ilike(notices.rawText, `%${trimmed}%`),
+            ilike(notices.actCited, `%${trimmed}%`),
+            ...(numericQuery !== null
+              ? [eq(notices.noticeNumber, numericQuery), eq(notices.noticeYear, numericQuery)]
+              : [])
+          );
+        }
       }
 
       const results = await db.select()

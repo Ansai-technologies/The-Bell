@@ -6,8 +6,9 @@ Date: 2026-09-23 | Track: The-Bell (Gazette Watch) | Branch: labs/the-bell-notic
 - `GET /api/notices?q=` now treats a numeric query as an exact match on
   `notice_number` OR `notice_year`, in addition to the existing text search over
   subject line, raw text, and cited act. E.g. `q=4521` finds Gazette Notice
-  No. 4521; `q=2026` lists all 2026 notices. Non-numeric queries behave exactly
-  as before.
+  No. 4521; `q=2026` lists all 2026 notices.
+- `q` is now runtime-validated: repeated/structured query shapes (for example
+  `?q=2026&q=2025`) are rejected with HTTP 400 instead of reaching search logic.
 - Seeded `reviews/TEMPLATE.md` — the review-packet template every future
   The-Bell change will follow (schema per platform design, section 3).
 
@@ -18,8 +19,8 @@ Date: 2026-09-23 | Track: The-Bell (Gazette Watch) | Branch: labs/the-bell-notic
 - `reviews/2026-09-23-the-bell-notice-search.md` — this packet.
 
 ## How to verify
-1. Read the diff: PR "Files changed" tab — confirm the only logic change is the
-   numeric branch inside the `if (searchQuery)` block (no other query paths touched).
+1. Read the diff: PR "Files changed" tab — confirm logic changes are scoped to
+   `q` handling in `/api/notices` (runtime type validation and numeric branch).
 2. Optional, needs a local Postgres: set `DATABASE_URL`, `npm install`,
    `npm run dev`, then `curl "localhost:3000/api/notices?q=2026"` — notices from
    2026 must appear even when "2026" occurs in no text field. (No database is
