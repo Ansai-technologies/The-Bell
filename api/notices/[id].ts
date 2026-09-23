@@ -4,6 +4,9 @@ import { notices } from '../../src/db/schema';
 import { eq } from 'drizzle-orm';
 
 export default async function handler(req: any, res: any) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
   try {
     const db = getDb();
     const raw = req.query.id;
