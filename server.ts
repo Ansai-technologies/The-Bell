@@ -45,12 +45,20 @@ async function startServer() {
             && numericCandidate <= 2147483647
             ? numericCandidate
             : null;
+          const yearQuery = numericQuery !== null
+            && numericQuery >= 1000
+            && numericQuery <= 9999
+            ? numericQuery
+            : null;
           condition = or(
             ilike(notices.subjectLine, `%${trimmed}%`),
             ilike(notices.rawText, `%${trimmed}%`),
             ilike(notices.actCited, `%${trimmed}%`),
             ...(numericQuery !== null
-              ? [eq(notices.noticeNumber, numericQuery), eq(notices.noticeYear, numericQuery)]
+              ? [
+                eq(notices.noticeNumber, numericQuery),
+                ...(yearQuery !== null ? [eq(notices.noticeYear, yearQuery)] : [])
+              ]
               : [])
           );
         }
