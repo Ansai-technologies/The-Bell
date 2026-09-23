@@ -33,10 +33,15 @@ async function startServer() {
       let condition = undefined;
       
       if (searchQuery) {
+        const trimmed = searchQuery.trim();
+        const numericQuery = /^\d+$/.test(trimmed) ? parseInt(trimmed, 10) : null;
         condition = or(
           ilike(notices.subjectLine, `%${searchQuery}%`),
           ilike(notices.rawText, `%${searchQuery}%`),
-          ilike(notices.actCited, `%${searchQuery}%`)
+          ilike(notices.actCited, `%${searchQuery}%`),
+          ...(numericQuery !== null
+            ? [eq(notices.noticeNumber, numericQuery), eq(notices.noticeYear, numericQuery)]
+            : [])
         );
       }
 
