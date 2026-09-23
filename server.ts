@@ -39,7 +39,10 @@ async function startServer() {
       
       let condition = undefined;
       
-      if (searchQuery) {
+if (searchQuery) {
+        if (typeof searchQuery !== 'string') {
+          return res.status(400).json({ error: 'q must be a string' });
+        }
         const trimmed = searchQuery.trim();
         if (trimmed) {
           const numericCandidate = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
