@@ -15,9 +15,10 @@ function first(v: string | string[] | undefined): string | undefined {
 }
 
 export default async function handler(req: any, res: any) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
   try {
-    const db = getDb();
-    const page = parseInt(first(req.query.page) as string) || 1;
     const limit = parseInt(first(req.query.limit) as string) || 20;
     const offset = (page - 1) * limit;
 
