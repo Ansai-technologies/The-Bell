@@ -17,3 +17,10 @@ Date: YYYY-MM-DD | Track: <track> | Branch: <branch> | PR: #<n>
 
 ## Decision requested
 - Merge, merge-with-changes, or abandon — plus any product decision he must make.
+
+## Merge gate (hard rule — adopted 2026-09-23)
+A PR merges only when every risk flagged in this packet is either:
+- RESOLVED on the branch, or
+- explicitly DEFERRED with a named owner and a next step.
+A packet that discloses a risk the branch does not address does not merge.
+Disclosing a risk is not the same as handling it.
