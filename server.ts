@@ -8,6 +8,9 @@ import { createServer as createViteServer } from 'vite';
 
 const _filename = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url);
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(_filename);
+const MAX_INT32 = 2_147_483_647;
+const MIN_NOTICE_YEAR = 1000;
+const MAX_NOTICE_YEAR = 9999;
 
 async function startServer() {
   const app = express();
@@ -30,7 +33,7 @@ async function startServer() {
       
       const rawSearchQuery = req.query.q;
       if (rawSearchQuery !== undefined && typeof rawSearchQuery !== 'string') {
-        return res.status(400).json({ error: 'Invalid query parameter format' });
+        return res.status(400).json({ error: 'Invalid query parameter: q must be a single string value' });
       }
       const searchQuery = typeof rawSearchQuery === 'string' ? rawSearchQuery : undefined;
       
@@ -42,12 +45,12 @@ async function startServer() {
           const numericCandidate = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
           const numericQuery = numericCandidate !== null
             && Number.isSafeInteger(numericCandidate)
-            && numericCandidate <= 2147483647
+            && numericCandidate <= MAX_INT32
             ? numericCandidate
             : null;
           const yearQuery = numericQuery !== null
-            && numericQuery >= 1000
-            && numericQuery <= 9999
+            && numericQuery >= MIN_NOTICE_YEAR
+            && numericQuery <= MAX_NOTICE_YEAR
             ? numericQuery
             : null;
           condition = or(
