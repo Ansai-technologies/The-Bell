@@ -28,13 +28,22 @@ async function startServer() {
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = (page - 1) * limit;
       
-      const searchQuery = req.query.q as string;
+      const rawSearchQuery = req.query.q;
+      if (rawSearchQuery !== undefined && typeof rawSearchQuery !== 'string') {
+        return res.status(400).json({ error: 'Invalid query parameter format' });
+      }
+      const searchQuery = typeof rawSearchQuery === 'string' ? rawSearchQuery : undefined;
       
       let condition = undefined;
       
       if (searchQuery) {
         const trimmed = searchQuery.trim();
-        const numericQuery = /^\d+$/.test(trimmed) ? parseInt(trimmed, 10) : null;
+        const numericCandidate = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
+        const numericQuery = numericCandidate !== null
+          && Number.isSafeInteger(numericCandidate)
+          && numericCandidate <= 2147483647
+          ? numericCandidate
+          : null;
         condition = or(
           ilike(notices.subjectLine, `%${searchQuery}%`),
           ilike(notices.rawText, `%${searchQuery}%`),
