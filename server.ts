@@ -8,6 +8,9 @@ import { createServer as createViteServer } from 'vite';
 
 const _filename = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url);
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(_filename);
+const MAX_INT32 = 2_147_483_647;
+const MIN_NOTICE_YEAR = 1000;
+const MAX_NOTICE_YEAR = 9999;
 
 async function startServer() {
   const app = express();
@@ -28,16 +31,43 @@ async function startServer() {
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = (page - 1) * limit;
       
-      const searchQuery = req.query.q as string;
+      const rawSearchQuery = req.query.q;
+      if (rawSearchQuery !== undefined && typeof rawSearchQuery !== 'string') {
+        return res.status(400).json({ error: 'Invalid query parameter: q must be a single string value' });
+      }
+      const searchQuery = typeof rawSearchQuery === 'string' ? rawSearchQuery : undefined;
       
       let condition = undefined;
       
-      if (searchQuery) {
-        condition = or(
-          ilike(notices.subjectLine, `%${searchQuery}%`),
-          ilike(notices.rawText, `%${searchQuery}%`),
-          ilike(notices.actCited, `%${searchQuery}%`)
-        );
+if (searchQuery) {
+        if (typeof searchQuery !== 'string') {
+          return res.status(400).json({ error: 'q must be a string' });
+        }
+        const trimmed = searchQuery.trim();
+        if (trimmed) {
+          const numericCandidate = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
+          const numericQuery = numericCandidate !== null
+            && Number.isSafeInteger(numericCandidate)
+            && numericCandidate <= MAX_INT32
+            ? numericCandidate
+            : null;
+          const yearQuery = numericQuery !== null
+            && numericQuery >= MIN_NOTICE_YEAR
+            && numericQuery <= MAX_NOTICE_YEAR
+            ? numericQuery
+            : null;
+          condition = or(
+            ilike(notices.subjectLine, `%${trimmed}%`),
+            ilike(notices.rawText, `%${trimmed}%`),
+            ilike(notices.actCited, `%${trimmed}%`),
+            ...(numericQuery !== null
+              ? [
+                eq(notices.noticeNumber, numericQuery),
+                ...(yearQuery !== null ? [eq(notices.noticeYear, yearQuery)] : [])
+              ]
+              : [])
+          );
+        }
       }
 
       const results = await db.select()
