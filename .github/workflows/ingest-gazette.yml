@@ -1,0 +1,42 @@
+# The-Bell real Gazette ingestion — KenyaLaw AKN PDFs -> Supabase.
+# Daily run processes the most recent issues; use "Run workflow" for backfills.
+name: Gazette ingest
+
+on:
+  schedule:
+    - cron: '0 4 * * *' # 07:00 EAT daily
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Gazette year to scan (blank = current year)'
+        required: false
+        default: ''
+      limit:
+        description: 'Most recent N issues to process (0 = all found)'
+        required: false
+        default: '8'
+      force:
+        description: 'Re-process issues already marked processed'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ingest dependencies
+        run: pip install -r scripts/requirements-ingest.txt
+      - name: Run Gazette ingest
+        run: >
+          python scripts/ingest_gazette.py
+          ${{ inputs.year && format('--year {0}', inputs.year) || '' }}
+          --limit ${{ inputs.limit || '8' }}
+          ${{ inputs.force && '--force' || '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
